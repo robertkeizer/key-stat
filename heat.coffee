@@ -1,9 +1,10 @@
 log	= require( "logging" ).from __filename
 http	= require "http"
 async	= require "async"
+util	= require "util"
 
 # Define the view url.
-view_url = "http://localhost:5984/key-stat/_design/test/_view/meh"
+view_url = "http://localhost:5984/key-stat/_design/keys/_view/timespan-keys-by-date"
 
 # 2 hours worth of 5 minute images.
 num_images	= 24
@@ -26,18 +27,26 @@ async.map [1..num_images], ( i, cb ) ->
 		res.on "data", ( chunk ) ->
 			_r += chunk
 		res.on "end", ( ) ->
-			_p = { }
+			_return = [ ]
 			for row in JSON.parse( _r ).rows
-				if not _p[row.value]?
-					_p[row.value] = 0
-				_p[row.value] += 1
-			
-			cb null, _p
+				if Object.keys( row.value[1] ).length > 0
+					_return.push row.value
+
+			cb null, _return
 
 	req.on "error", cb
+
 , ( err, res ) ->
 	if err
 		log "Error: #{err}"
 		process.exit 1
 
-	log res
+	for timeframe in res
+		# timeframe is an array of arrays
+		# with the elements of the first array being
+		# [ timespan, keys_dict ]
+		
+		# Generate a heatmap matrix here..
+
+		for data_point in timeframe
+			continue
